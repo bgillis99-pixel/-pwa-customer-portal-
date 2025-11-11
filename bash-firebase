@@ -1,0 +1,9 @@
+# From project root
+cd pwa-customer-portal
+npm install -g firebase-tools
+firebase login
+firebase init hosting
+# → Select your project (create if needed)
+# → Public directory: . (current folder)
+# → Configure as single-page app? Yes
+firebase deploy
