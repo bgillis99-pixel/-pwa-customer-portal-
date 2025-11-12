@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Icons</title></head>
+<body>
+<canvas id="canvas192" width="192" height="192"></canvas>
+<canvas id="canvas512" width="512" height="512"></canvas>
+<script>
+function createIcon(size) {
+  const canvas = document.getElementById('canvas' + size);
+  const ctx = canvas.getContext('2d');
+  
+  // Background
+  ctx.fillStyle = '#00A651';
+  ctx.fillRect(0, 0, size, size);
+  
+  // White circle
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size*0.31, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Green inner circle
+  ctx.fillStyle = '#00A651';
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size*0.26, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Text
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold ' + (size * 0.25) + 'px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('C', size/2, size/2);
+  
+  return canvas.toDataURL('image/png');
+}
+
+// Generate and download
+setTimeout(() => {
+  const link192 = document.createElement('a');
+  link192.download = 'icon-192.png';
+  link192.href = createIcon(192);
+  link192.click();
+  
+  setTimeout(() => {
+    const link512 = document.createElement('a');
+    link512.download = 'icon-512.png';
+    link512.href = createIcon(512);
+    link512.click();
+  }, 100);
+}, 100);
+</script>
+</body>
+</html>
