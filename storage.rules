@@ -1,0 +1,48 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Job certificates - only admins can upload, authenticated users can read
+    match /certificates/{jobId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Vehicle inspection reports
+    match /reports/{jobId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // User profile pictures
+    match /profiles/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId);
+    }
+
+    // Company logos
+    match /logos/{customerId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Temporary uploads (30 day expiry)
+    match /tmp/{userId}/{fileName} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
