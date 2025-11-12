@@ -1,12 +1,16 @@
 {
   "name": "NorCal CARB Portal",
   "short_name": "CARB Portal",
-  "start_url": "/pwa-customer-portal/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#00A651",
+  "description": "California Air Resources Board (CARB) compliance portal for mobile heavy-duty vehicle testing",
+  "orientation": "portrait-primary",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }
