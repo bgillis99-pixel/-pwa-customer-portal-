@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CARB HELP APP — NorCal CARB Mobile</title>
+  <meta name="description" content="Mobile CARB Clean Truck Check help: quick scheduling, on-site OBD & J1667 smoke tests, and compliance reminders across Northern California." />
+  <meta property="og:title" content="CARB HELP APP — NorCal CARB Mobile" />
+  <meta property="og:description" content="Book mobile CARB testing, get reminders, and stay compliant. We come to you." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://carb-help-app-251117-bg.web.app" />
+  <meta name="theme-color" content="#0a2a43" />
+  <style>
+    :root{--bg:#0a2a43;--accent:#16a34a;--text:#eaf2f8;}
+    *{box-sizing:border-box} body{margin:0;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:980px;margin:0 auto;padding:40px 20px}
+    .hero{display:grid;gap:18px}
+    h1{margin:0;font-size:32px;line-height:1.15}
+    p{margin:0}
+    .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+    .btn{appearance:none;border:0;border-radius:12px;padding:14px 18px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+    .btn-primary{background:var(--accent);color:#071b2c}
+    .btn-ghost{background:#10324f;color:var(--text);border:1px solid #184363}
+    .grid{display:grid;gap:14px;margin-top:28px}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .card{background:#0e3556;border:1px solid #184363;border-radius:16px;padding:18px}
+    small{opacity:.85}
+    footer{margin-top:40px;opacity:.8}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>CARB HELP APP</h1>
+      <p>Book mobile CARB Clean Truck Check, get automated reminders, and stay compliant without downtime.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="tel:+16173596953">Call to Book: (617) 359-6953</a>
+        <a class="btn btn-ghost" href="mailto:info@norcalcarbmobile.com?subject=Book%20Mobile%20CARB%20Test">Email Us</a>
+      </div>
+      <small>Deployed: <span id="ts"></span></small>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Services</h3>
+        <p>OBD checks • J1667 smoke opacity • RV/motorhome. Mobile, on-site, across NorCal.</p>
+      </div>
+      <div class="card">
+        <h3>Reminders</h3>
+        <p>Opt-in reminders so you never miss semi-annual testing. Reduce fines and surprise downtime.</p>
+      </div>
+      <div class="card">
+        <h3>Coverage</h3>
+        <p>Sacramento • Stockton • Bay Area • Central Valley. Fleet and owner-operator friendly.</p>
+      </div>
+      <div class="card">
+        <h3>Fast Setup</h3>
+        <p>Call, text, or email. We schedule, arrive, test, and send results. Lean and automated.</p>
+      </div>
+    </section>
+
+    <footer>
+      <small>NorCal CARB Mobile • norcalcarbmobile.com</small>
+    </footer>
+  </div>
+
+  <script>document.getElementById('ts').textContent = new Date().toLocaleString();</script>
+</body>
+</html>
