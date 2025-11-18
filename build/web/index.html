@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CARB Compliance Portal - Mobile CARB Clean Truck Check help: quick scheduling, on-site testing, and compliance tracking">
+  <meta name="theme-color" content="#0a2a43">
+  <title>CARB Compliance Portal - NorCal CARB Mobile</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a2a43;
+      --bg-secondary: #0e3556;
+      --bg-card: #10324f;
+      --accent: #16a34a;
+      --accent-hover: #15803d;
+      --text-primary: #eaf2f8;
+      --text-secondary: #94a3b8;
+      --border: #184363;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, #0e1f33 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(14, 53, 86, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent);
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* Tab Content */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    .card h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #0a2f4d;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 14px 28px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(22, 163, 74, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #10324f;
+      border-color: var(--accent);
+      box-shadow: none;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .quick-action {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .quick-action:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .quick-action-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .quick-action-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+
+    .status-completed {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .status-scheduled {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+
+    /* Job Card */
+    .job-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .job-id {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .job-details {
+      display: grid;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .job-detail {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .job-detail-label {
+      color: var(--text-secondary);
+    }
+
+    /* File Upload */
+    .file-upload {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-upload:hover {
+      border-color: var(--accent);
+      background: rgba(22, 163, 74, 0.05);
+    }
+
+    .file-upload input {
+      display: none;
+    }
+
+    .file-upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+
+    /* Alert */
+    .alert {
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    .alert-info {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: #3b82f6;
+      color: #3b82f6;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 12px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .btn-group {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Hidden utility */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🚛 CARB Compliance Portal</h1>
+      <p>NorCal CARB Mobile - Compliance Made Simple</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a href="tel:+19168904427" class="quick-action">
+        <div class="quick-action-icon">📞</div>
+        <div class="quick-action-title">Call Now</div>
+      </a>
+      <div class="quick-action" onclick="showTab('quote')">
+        <div class="quick-action-icon">📋</div>
+        <div class="quick-action-title">Get Quote</div>
+      </div>
+      <div class="quick-action" onclick="showTab('track')">
+        <div class="quick-action-icon">📍</div>
+        <div class="quick-action-title">Track Job</div>
+      </div>
+      <div class="quick-action" onclick="showTab('vin')">
+        <div class="quick-action-icon">🔍</div>
+        <div class="quick-action-title">Check VIN</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
+      <div class="tab" onclick="showTab('quote')">Get Quote</div>
+      <div class="tab" onclick="showTab('track')">Track Job</div>
+      <div class="tab" onclick="showTab('vin')">VIN Lookup</div>
+      <div class="tab" onclick="showTab('resources')">Resources</div>
+    </div>
+
+    <!-- Dashboard Tab -->
+    <div id="dashboard" class="tab-content active">
+      <div class="card">
+        <h2>Welcome to CARB Compliance Portal</h2>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">
+          Mobile CARB Clean Truck Check services across Northern California. We bring compliance testing directly to your fleet location.
+        </p>
+
+        <div class="btn-group">
+          <button class="btn" onclick="showTab('quote')">Request a Quote</button>
+          <button class="btn btn-secondary" onclick="showTab('track')">Track Your Job</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Our Services</h3>
+        <div class="job-details">
+          <div class="job-detail">
+            <span class="job-detail-label">✅ OBD Emissions Testing</span>
+            <span>$150</span>
+          </div>
+          <div class="job-detail">
+            <span class="job-detail-label">✅ J1667/J1587 Smoke Test</span>
+            <span>$175</span>
+          </div>
+          <div class="job-detail">
+            <span class="job-detail-label">✅ Full Compliance Package</span>
+            <span>$300</span>
+          </div>
+          <div class="job-detail">
+            <span class="job-detail-label">✅ Fleet Testing (5+ vehicles)</span>
+            <span>Custom</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Coverage Area</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 12px;">
+          We serve all of Northern California including Sacramento, Stockton, Modesto, Fresno, and surrounding areas.
+        </p>
+        <a href="https://www.google.com/maps/search/northern+california" target="_blank" class="btn btn-secondary">View Coverage Map</a>
+      </div>
+    </div>
+
+    <!-- Quote Tab -->
+    <div id="quote" class="tab-content">
+      <div class="card">
+        <h2>Request a Quote</h2>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">
+          Fill out the form below and we'll get back to you within 24 hours with a custom quote.
+        </p>
+
+        <div id="quoteAlert" class="alert alert-success hidden">
+          Quote request submitted successfully! We'll contact you within 24 hours.
+        </div>
+
+        <form id="quoteForm" onsubmit="submitQuote(event)">
+          <div class="form-group">
+            <label for="companyName">Company Name *</label>
+            <input type="text" id="companyName" required placeholder="ABC Trucking LLC">
+          </div>
+
+          <div class="form-group">
+            <label for="contactName">Contact Name *</label>
+            <input type="text" id="contactName" required placeholder="John Doe">
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" required placeholder="john@abctrucking.com">
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone *</label>
+            <input type="tel" id="phone" required placeholder="(916) 555-1234">
+          </div>
+
+          <div class="form-group">
+            <label for="zip">ZIP Code *</label>
+            <input type="text" id="zip" required placeholder="95814" pattern="[0-9]{5}">
+          </div>
+
+          <div class="form-group">
+            <label for="serviceType">Service Type *</label>
+            <select id="serviceType" required>
+              <option value="">Select a service...</option>
+              <option value="obd">OBD Emissions Test ($150)</option>
+              <option value="smoke">J1667/J1587 Smoke Test ($175)</option>
+              <option value="full">Full Compliance Package ($300)</option>
+              <option value="fleet">Fleet Testing (5+ vehicles)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="vehicleCount">Number of Vehicles</label>
+            <input type="number" id="vehicleCount" min="1" value="1" placeholder="1">
+          </div>
+
+          <div class="form-group">
+            <label for="preferredDate">Preferred Date</label>
+            <input type="date" id="preferredDate" min="">
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Additional Notes</label>
+            <textarea id="notes" placeholder="Any special requirements or questions..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-full">Submit Quote Request</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Track Job Tab -->
+    <div id="track" class="tab-content">
+      <div class="card">
+        <h2>Track Your Job</h2>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">
+          Enter your job ID or phone number to track your service status.
+        </p>
+
+        <div id="trackAlert" class="alert alert-info hidden"></div>
+
+        <form id="trackForm" onsubmit="trackJob(event)">
+          <div class="form-group">
+            <label for="trackingId">Job ID or Phone Number</label>
+            <input type="text" id="trackingId" required placeholder="CARB-2024-12345 or (916) 555-1234">
+          </div>
+
+          <button type="submit" class="btn btn-full">Track Job</button>
+        </form>
+
+        <div id="trackResults" class="hidden" style="margin-top: 30px;">
+          <h3>Job Status</h3>
+          <div id="jobsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIN Lookup Tab -->
+    <div id="vin" class="tab-content">
+      <div class="card">
+        <h2>VIN Lookup & Check</h2>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">
+          Enter a VIN or upload a photo to check CARB compliance status.
+        </p>
+
+        <div class="form-group">
+          <label for="vinInput">Enter VIN (17 characters)</label>
+          <input type="text" id="vinInput" maxlength="17" placeholder="1HGBH41JXMN109186" style="text-transform: uppercase;">
+          <button class="btn btn-full" style="margin-top: 10px;" onclick="checkVIN()">Check VIN Status</button>
+        </div>
+
+        <div style="margin: 30px 0; text-align: center; color: var(--text-secondary);">
+          <p>— OR —</p>
+        </div>
+
+        <div class="file-upload" onclick="document.getElementById('vinPhoto').click()">
+          <input type="file" id="vinPhoto" accept="image/*" capture="camera" onchange="extractVIN(event)">
+          <div class="file-upload-icon">📸</div>
+          <div style="font-weight: 600; margin-bottom: 8px;">Upload VIN Photo</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">Click to take a photo or upload from gallery</div>
+        </div>
+
+        <div id="vinResult" class="hidden" style="margin-top: 30px;">
+          <div class="alert alert-info">
+            <strong>Extracted VIN:</strong> <span id="extractedVIN"></span>
+          </div>
+          <button class="btn btn-full" onclick="checkVIN()">Check This VIN</button>
+        </div>
+
+        <div id="vinStatus" class="hidden" style="margin-top: 30px;">
+          <h3>Compliance Status</h3>
+          <div id="vinStatusContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resources Tab -->
+    <div id="resources" class="tab-content">
+      <div class="card">
+        <h2>CARB Resources</h2>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">
+          Official CARB resources and helpful links.
+        </p>
+
+        <div class="btn-group">
+          <a href="https://cleantruckcheck.arb.ca.gov/Fleet/Vehicle/VehicleComplianceStatusLookup" target="_blank" class="btn btn-secondary">
+            Check Vehicle Status
+          </a>
+          <a href="https://cleantruckcheck.arb.ca.gov/OnlineForm/ViewProfileRequest/Create?viewProfileID=2083" target="_blank" class="btn btn-secondary">
+            View My Profile
+          </a>
+          <a href="https://ww2.arb.ca.gov/our-work/programs/heavy-duty-inspection-maintenance-program" target="_blank" class="btn btn-secondary">
+            CARB HD I/M Program
+          </a>
+          <a href="https://ww2.arb.ca.gov/our-work/programs/truck-and-bus-regulation" target="_blank" class="btn btn-secondary">
+            Truck & Bus Regulation
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Frequently Asked Questions</h3>
+
+        <div style="margin-bottom: 20px;">
+          <strong style="color: var(--accent);">What is CARB compliance?</strong>
+          <p style="margin-top: 8px; color: var(--text-secondary);">
+            California Air Resources Board (CARB) requires heavy-duty vehicles to meet emissions standards through regular testing and certification.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <strong style="color: var(--accent);">How often do I need testing?</strong>
+          <p style="margin-top: 8px; color: var(--text-secondary);">
+            Most commercial trucks require annual CARB compliance testing. Check your specific vehicle requirements on the CARB website.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <strong style="color: var(--accent);">What do I need for the test?</strong>
+          <p style="margin-top: 8px; color: var(--text-secondary);">
+            You'll need your vehicle registration, VIN, and current mileage. Our technician will bring all testing equipment.
+          </p>
+        </div>
+
+        <div>
+          <strong style="color: var(--accent);">How long does testing take?</strong>
+          <p style="margin-top: 8px; color: var(--text-secondary);">
+            Most tests take 30-45 minutes per vehicle. We work efficiently to minimize your downtime.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p><strong>NorCal CARB Mobile</strong></p>
+      <p>Mobile Compliance Testing Across Northern California</p>
+      <p style="margin-top: 12px;">
+        📧 <a href="mailto:support@norcalcarbmobile.com">support@norcalcarbmobile.com</a><br>
+        📞 <a href="tel:+19168904427">(916) 890-4427</a>
+      </p>
+      <p style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
+        &copy; 2024 NorCal CARB Mobile. All rights reserved.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Set min date for quote form to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('preferredDate').setAttribute('min', today);
+
+    // Tab switching
+    function showTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      const tabs = document.querySelectorAll('.tab');
+      const tabNames = ['dashboard', 'quote', 'track', 'vin', 'resources'];
+      const index = tabNames.indexOf(tabName);
+      if (index !== -1) {
+        tabs[index].classList.add('active');
+      }
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Submit quote form
+    function submitQuote(event) {
+      event.preventDefault();
+
+      const formData = {
+        companyName: document.getElementById('companyName').value,
+        contactName: document.getElementById('contactName').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        zip: document.getElementById('zip').value,
+        serviceType: document.getElementById('serviceType').value,
+        vehicleCount: document.getElementById('vehicleCount').value,
+        preferredDate: document.getElementById('preferredDate').value,
+        notes: document.getElementById('notes').value,
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('Quote request:', formData);
+
+      // Show success message
+      const alert = document.getElementById('quoteAlert');
+      alert.classList.remove('hidden');
+
+      // Scroll to alert
+      alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      // Reset form
+      document.getElementById('quoteForm').reset();
+
+      // In production, this would send to Firebase/backend
+      // For now, simulate submission
+      setTimeout(() => {
+        alert.classList.add('hidden');
+      }, 5000);
+    }
+
+    // Track job
+    function trackJob(event) {
+      event.preventDefault();
+
+      const trackingId = document.getElementById('trackingId').value;
+
+      // Show loading
+      const alert = document.getElementById('trackAlert');
+      alert.className = 'alert alert-info';
+      alert.textContent = 'Searching for jobs...';
+      alert.classList.remove('hidden');
+
+      // Simulate API call
+      setTimeout(() => {
+        // Mock job data
+        const jobs = [
+          {
+            id: 'CARB-2024-12345',
+            status: 'scheduled',
+            service: 'Full Compliance Package',
+            date: '2024-11-25',
+            time: '10:00 AM',
+            technician: 'Mike Johnson',
+            location: 'Your Fleet Location'
+          }
+        ];
+
+        if (jobs.length > 0) {
+          alert.className = 'alert alert-success';
+          alert.textContent = `Found ${jobs.length} job(s)`;
+
+          const jobsList = document.getElementById('jobsList');
+          jobsList.innerHTML = jobs.map(job => `
+            <div class="job-card">
+              <div class="job-header">
+                <span class="job-id">${job.id}</span>
+                <span class="status-badge status-${job.status}">${job.status.toUpperCase()}</span>
+              </div>
+              <div class="job-details">
+                <div class="job-detail">
+                  <span class="job-detail-label">Service:</span>
+                  <span>${job.service}</span>
+                </div>
+                <div class="job-detail">
+                  <span class="job-detail-label">Date:</span>
+                  <span>${job.date} at ${job.time}</span>
+                </div>
+                <div class="job-detail">
+                  <span class="job-detail-label">Technician:</span>
+                  <span>${job.technician}</span>
+                </div>
+                <div class="job-detail">
+                  <span class="job-detail-label">Location:</span>
+                  <span>${job.location}</span>
+                </div>
+              </div>
+            </div>
+          `).join('');
+
+          document.getElementById('trackResults').classList.remove('hidden');
+        } else {
+          alert.className = 'alert alert-error';
+          alert.textContent = 'No jobs found. Please check your job ID or phone number.';
+        }
+      }, 1000);
+    }
+
+    // Check VIN
+    function checkVIN() {
+      const vin = document.getElementById('vinInput').value.toUpperCase() ||
+                   document.getElementById('extractedVIN').textContent;
+
+      if (!vin || vin.length !== 17) {
+        alert('Please enter a valid 17-character VIN');
+        return;
+      }
+
+      // Open CARB official lookup
+      window.open(`https://cleantruckcheck.arb.ca.gov/Fleet/Vehicle/VehicleComplianceStatusLookup?vin=${vin}`, '_blank');
+    }
+
+    // Extract VIN from photo (simplified version - would use OCR in production)
+    function extractVIN(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const alert = document.getElementById('vinResult');
+      alert.classList.remove('hidden');
+
+      // In production, this would use Tesseract.js or similar
+      // For demo, generate a sample VIN
+      const sampleVIN = '1HGBH41JXMN109186';
+      document.getElementById('extractedVIN').textContent = sampleVIN;
+      document.getElementById('vinInput').value = sampleVIN;
+    }
+
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('Service Worker registered:', reg))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+
+    // Install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+
+      // Show install button (could add to UI if desired)
+      console.log('PWA install prompt ready');
+    });
+  </script>
+</body>
+</html>
