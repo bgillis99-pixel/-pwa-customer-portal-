@@ -62,44 +62,69 @@ export default function Home() {
   return (
     <>
       {/* ── Main Dashboard ───────────────────────────────────── */}
-      <div className="min-h-screen bg-gray-50 p-4">
-        <h1 className="mb-6 text-2xl font-bold text-center text-primary">
-          CARB‑Simple
-        </h1>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Hero Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#1A3C5E] mb-2">
+            Compliance Made Simple
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Mobile CARB testing and compliance management
+          </p>
+        </div>
 
-        {/* Buttons */}
-        <div className="flex gap-4 justify-center mb-8">
-          <Button onClick={() => setLogOpen(true)} size="lg">
-            Log
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 max-w-md mx-auto">
+          <Button
+            onClick={() => setLogOpen(true)}
+            size="lg"
+            className="bg-[#00A651] hover:bg-[#008f47] text-white font-semibold py-6 text-lg"
+          >
+            Log Entry
           </Button>
-          <Button onClick={() => setAskOpen(true)} size="lg" variant="outline">
-            Ask
+          <Button
+            onClick={() => setAskOpen(true)}
+            size="lg"
+            variant="outline"
+            className="border-2 border-[#1A3C5E] text-[#1A3C5E] hover:bg-[#1A3C5E] hover:text-white font-semibold py-6 text-lg"
+          >
+            Ask CARB Bot
           </Button>
         </div>
 
-        {/* Real‑time log list */}
-        <ScrollArea className="h-[calc(100vh-220px)]">
-          {logs.length === 0 ? (
-            <p className="text-center text-muted-foreground">
-              No logs yet – start by tapping “Log”.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {logs.map((log) => (
-                <Card key={log.id}>
-                  <CardContent className="pt-4">
-                    <p className="text-sm">{log.raw}</p>
-                    {log.createdAt && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(log.createdAt.toDate()).toLocaleString()}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+        {/* Recent Activity Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold text-[#1A3C5E] mb-4">
+            Recent Activity
+          </h2>
+          <ScrollArea className="h-[400px]">
+            {logs.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg mb-2">
+                  No logs yet
+                </p>
+                <p className="text-gray-400 text-sm">
+                  Start by creating a new log entry
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {logs.map((log) => (
+                  <Card key={log.id} className="border border-gray-200 hover:border-[#00A651] transition-colors">
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-gray-800 mb-2">{log.raw}</p>
+                      {log.createdAt && (
+                        <p className="text-xs text-gray-500">
+                          {new Date(log.createdAt.toDate()).toLocaleString()}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
       </div>
 
       {/* ── Log Dialog ─────────────────────────────────────── */}

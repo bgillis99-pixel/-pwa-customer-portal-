@@ -1,12 +1,26 @@
 {
-  "name": "NorCal CARB Portal",
+  "name": "NorCal CARB Mobile - Customer Portal",
   "short_name": "CARB Portal",
-  "start_url": "/pwa-customer-portal/",
+  "description": "Clean Truck Check Credentialed Tester - Mobile CARB compliance testing",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#00A651",
+  "orientation": "portrait-primary",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "screenshots": []
 }
