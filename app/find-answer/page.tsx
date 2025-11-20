@@ -3,8 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Send, MessageSquare } from 'lucide-react';
+import PasswordProtection from '@/app/components/PasswordProtection';
 
 export default function FindAnswerPage() {
+  return (
+    <PasswordProtection>
+      <FindAnswerContent />
+    </PasswordProtection>
+  );
+}
+
+function FindAnswerContent() {
   const [question, setQuestion] = useState('');
   const [chat, setChat] = useState<{ role: 'user' | 'bot'; text: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);

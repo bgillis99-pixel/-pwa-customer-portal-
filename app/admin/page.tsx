@@ -5,8 +5,17 @@ import Link from 'next/link';
 import { collection, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ArrowLeft, Mic, Send } from 'lucide-react';
+import PasswordProtection from '@/app/components/PasswordProtection';
 
 export default function AdminPage() {
+  return (
+    <PasswordProtection>
+      <AdminContent />
+    </PasswordProtection>
+  );
+}
+
+function AdminContent() {
   // ── Log dialog ─────────────────────────────────────
   const [logOpen, setLogOpen] = useState(false);
   const [logText, setLogText] = useState('');

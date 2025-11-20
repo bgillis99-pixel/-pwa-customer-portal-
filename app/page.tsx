@@ -62,11 +62,14 @@ export default function Home() {
       <div className="w-full max-w-md space-y-4 mb-8">
         <Link
           href="/check-compliance"
-          className="block w-full bg-[#00A651] hover:bg-[#008f47] text-white font-semibold py-6 px-8 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:scale-[1.02] text-center text-lg"
+          className="block w-full bg-[#00A651] hover:bg-[#008f47] text-white font-semibold py-6 px-8 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:scale-[1.02] text-center text-lg relative"
         >
           <div className="flex items-center justify-center gap-3">
             <CheckCircle2 className="h-6 w-6" />
             <span>Check Compliance</span>
+            <span className="absolute top-2 right-2 bg-white text-[#00A651] text-xs font-bold px-2 py-1 rounded-full">
+              FREE
+            </span>
           </div>
         </Link>
 

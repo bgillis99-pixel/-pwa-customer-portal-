@@ -3,8 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Mail } from 'lucide-react';
+import PasswordProtection from '@/app/components/PasswordProtection';
 
 export default function FindTesterPage() {
+  return (
+    <PasswordProtection>
+      <FindTesterContent />
+    </PasswordProtection>
+  );
+}
+
+function FindTesterContent() {
   const [zipCode, setZipCode] = useState('');
   const [county, setCounty] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -161,3 +170,4 @@ export default function FindTesterPage() {
     </div>
   );
 }
+

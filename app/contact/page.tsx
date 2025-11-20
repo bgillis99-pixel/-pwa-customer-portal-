@@ -2,8 +2,17 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Mail, Phone, MapPin, Clock } from 'lucide-react';
+import PasswordProtection from '@/app/components/PasswordProtection';
 
 export default function ContactPage() {
+  return (
+    <PasswordProtection>
+      <ContactContent />
+    </PasswordProtection>
+  );
+}
+
+function ContactContent() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Back Button */}

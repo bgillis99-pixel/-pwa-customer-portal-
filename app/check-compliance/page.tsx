@@ -17,11 +17,16 @@ export default function CheckCompliancePage() {
 
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[#1A3C5E] mb-3">
-          Check Compliance Status
-        </h1>
+        <div className="flex items-center gap-3 mb-3">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#1A3C5E]">
+            Check Compliance Status
+          </h1>
+          <span className="bg-[#00A651] text-white text-sm font-bold px-3 py-1 rounded-full">
+            FREE
+          </span>
+        </div>
         <p className="text-gray-600 text-lg">
-          Verify your vehicle's CARB compliance status quickly and easily
+          Verify your vehicle's CARB compliance status quickly and easily - completely free!
         </p>
       </div>
 
