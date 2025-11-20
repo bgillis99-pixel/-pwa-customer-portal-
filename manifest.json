@@ -1,12 +1,75 @@
 {
   "name": "NorCal CARB Portal",
   "short_name": "CARB Portal",
+  "description": "Pocket CARB – Never Call the Hotline Again. Manage compliance, check VIN status, and access CARB resources instantly.",
   "start_url": "/pwa-customer-portal/",
+  "scope": "/pwa-customer-portal/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#f8f9fa",
   "theme_color": "#00A651",
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Check Compliance",
+      "short_name": "VIN DIESEL",
+      "description": "Check vehicle compliance status instantly",
+      "url": "/pwa-customer-portal/vin-diesel",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "FAQ & Help",
+      "short_name": "FAQ",
+      "description": "Get answers from CARB knowledge base",
+      "url": "/pwa-customer-portal/faq",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "New Log Entry",
+      "short_name": "Log",
+      "description": "Create a new trip or maintenance log",
+      "url": "/pwa-customer-portal/",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "iarc_rating_id": ""
 }
