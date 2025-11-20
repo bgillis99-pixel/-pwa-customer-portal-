@@ -3,6 +3,9 @@ import * as admin from "firebase-admin";
 
 admin.initializeApp();
 
+// Twilio configuration (set via Firebase Functions config)
+// Run: firebase functions:config:set twilio.account_sid="YOUR_SID" twilio.auth_token="YOUR_TOKEN" twilio.phone_number="YOUR_NUMBER"
+
 /**
  * Webhook receiver from Cloudflare Workers
  * Receives webhook events and stores them in Firestore for processing
@@ -157,7 +160,7 @@ async function processSMSLead(data: any, webhookId: string) {
  */
 async function processCalendarEvent(data: any, webhookId: string) {
   try {
-    const {eventId, summary, start, attendees} = data;
+    const {eventId, summary, start} = data;
 
     // Create or update job from calendar event
     const jobRef = admin.firestore().collection("jobs").doc(eventId);
@@ -370,3 +373,113 @@ export const processLogEntry = functions.firestore
       console.error("Error processing log entry:", error);
     }
   });
+
+/**
+ * Schedule Test - Send SMS to customer and create calendar invite
+ * Called from tester.html when tester schedules a new test
+ */
+export const scheduleTest = functions.https.onCall(async (data, context) => {
+  // Verify authenticated user
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "Must be authenticated to schedule tests"
+    );
+  }
+
+  const {testId, ownerPhone, vin, testerEmail} = data;
+
+  if (!testId || !ownerPhone || !vin) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Missing required fields: testId, ownerPhone, vin"
+    );
+  }
+
+  try {
+    // Get test document
+    const testRef = admin.firestore().collection("tests").doc(testId);
+    const testDoc = await testRef.get();
+
+    if (!testDoc.exists) {
+      throw new functions.https.HttpsError("not-found", "Test not found");
+    }
+
+    const testData = testDoc.data();
+
+    // Format phone number (remove non-digits)
+    const cleanPhone = ownerPhone.replace(/\D/g, "");
+    const formattedPhone = cleanPhone.startsWith("1") ?
+      `+${cleanPhone}` : `+1${cleanPhone}`;
+
+    // Send SMS via Twilio
+    const twilioAccountSid = functions.config().twilio?.account_sid;
+    const twilioAuthToken = functions.config().twilio?.auth_token;
+    const twilioPhoneNumber = functions.config().twilio?.phone_number;
+
+    if (twilioAccountSid && twilioAuthToken && twilioPhoneNumber) {
+      // Twilio API request
+      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
+
+      const message = `🚛 CARB Clean Truck Test Scheduled!\n\nVIN: ${vin}\nTester: ${testerEmail}\nLocation: ${testData?.location || "TBD"}\n\nWe'll arrive within 30 minutes. Questions? Call (916) 890-4427`;
+
+      const response = await fetch(twilioUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": "Basic " + Buffer.from(
+            `${twilioAccountSid}:${twilioAuthToken}`
+          ).toString("base64"),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          To: formattedPhone,
+          From: twilioPhoneNumber,
+          Body: message,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Twilio error:", errorText);
+        throw new Error(`Twilio SMS failed: ${errorText}`);
+      }
+
+      const twilioResult = await response.json();
+      console.log("SMS sent:", twilioResult.sid);
+
+      // Update test with SMS info
+      await testRef.update({
+        smsSid: twilioResult.sid,
+        smsStatus: "sent",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } else {
+      console.warn("Twilio not configured, skipping SMS");
+
+      // Update test without SMS
+      await testRef.update({
+        smsStatus: "skipped",
+        smsNote: "Twilio not configured",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+
+    // TODO: Create calendar invite
+    // This would integrate with Google Calendar API or similar
+    // For now, just log it
+    console.log(`Calendar invite for test ${testId}: ${vin} at ${testData?.location}`);
+
+    return {
+      success: true,
+      testId: testId,
+      smsStatus: twilioAccountSid ? "sent" : "skipped",
+      message: "Test scheduled successfully",
+    };
+  } catch (error) {
+    console.error("Schedule test error:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      `Failed to schedule test: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+});

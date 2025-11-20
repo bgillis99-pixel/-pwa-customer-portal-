@@ -67,5 +67,14 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Tests collection (for tester dashboard)
+    match /tests/{testId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated(); // Any authenticated user can create tests
+      allow update: if isAuthenticated() &&
+        (resource.data.testerId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
   }
 }

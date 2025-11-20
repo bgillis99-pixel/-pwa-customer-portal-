@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIN DIESEL – Tester Dashboard</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+      color: #1A3C5E;
+    }
+
+    /* Header */
+    .header {
+      background: #1A3C5E;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+    .header .user-info {
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logout-btn {
+      background: #00A651;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    /* Login Screen */
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    .login-box h2 {
+      color: #1A3C5E;
+      margin-top: 0;
+      text-align: center;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 14px;
+      background: #00A651;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .login-box button:hover {
+      background: #008f45;
+    }
+    .login-box .error {
+      color: #d32f2f;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* Main Dashboard */
+    .dashboard {
+      display: none;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .dashboard.active {
+      display: block;
+    }
+
+    /* Photo Upload Card */
+    .upload-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .upload-card h3 {
+      margin-top: 0;
+      color: #1A3C5E;
+      font-size: 1.2rem;
+    }
+
+    .photo-preview {
+      width: 100%;
+      max-width: 400px;
+      margin: 15px auto;
+      display: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .photo-preview.active {
+      display: block;
+    }
+
+    .upload-btn {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto 15px;
+      padding: 50px 20px;
+      background: #f0f0f0;
+      border: 2px dashed #00A651;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 1.1rem;
+      color: #1A3C5E;
+      transition: all 0.3s ease;
+    }
+    .upload-btn:hover {
+      background: #e8f5e9;
+      border-color: #008f45;
+    }
+    .upload-btn input {
+      display: none;
+    }
+
+    .extracted-info {
+      background: #e8f5e9;
+      border-left: 4px solid #00A651;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 6px;
+      display: none;
+    }
+    .extracted-info.active {
+      display: block;
+    }
+    .extracted-info p {
+      margin: 8px 0;
+      font-size: 0.95rem;
+    }
+    .extracted-info strong {
+      color: #1A3C5E;
+    }
+
+    .schedule-btn {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 16px;
+      background: #00A651;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: none;
+    }
+    .schedule-btn.active {
+      display: block;
+    }
+    .schedule-btn:hover {
+      background: #008f45;
+    }
+    .schedule-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Today's Jobs Dashboard */
+    .jobs-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .jobs-card h3 {
+      margin-top: 0;
+      color: #1A3C5E;
+      font-size: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .jobs-count {
+      background: #00A651;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
+    .job-item {
+      border-left: 4px solid #00A651;
+      background: #f8f9fa;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+    }
+    .job-item h4 {
+      margin: 0 0 8px 0;
+      color: #1A3C5E;
+      font-size: 1rem;
+    }
+    .job-item p {
+      margin: 4px 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .job-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+    .job-status.scheduled {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .job-status.in-progress {
+      background: #fff3e0;
+      color: #f57c00;
+    }
+    .job-status.completed {
+      background: #e8f5e9;
+      color: #00A651;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+    .empty-state .icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+    }
+
+    @media (max-width: 600px) {
+      .header h1 {
+        font-size: 1.1rem;
+      }
+      .header .user-info {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-box">
+      <h2>🔐 VIN DIESEL<br>Tester Login</h2>
+      <input type="email" id="emailInput" placeholder="Email" />
+      <input type="password" id="passwordInput" placeholder="Password" />
+      <button onclick="login()">Sign In</button>
+      <div id="loginError" class="error"></div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard -->
+  <div id="dashboard" class="dashboard">
+    <!-- Header -->
+    <div class="header">
+      <h1>📸 VIN DIESEL – Tester Dashboard</h1>
+      <div class="user-info">
+        <span id="userEmail"></span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Photo Upload Section -->
+    <div class="upload-card">
+      <h3>📸 Capture Truck Photo</h3>
+
+      <label for="truckPhoto" class="upload-btn">
+        <div style="font-size: 3rem; margin-bottom: 10px;">📷</div>
+        <div>Tap to Take Photo</div>
+        <div style="font-size: 0.9rem; color: #666; margin-top: 8px;">
+          Auto-extracts VIN, Plate & Location
+        </div>
+        <input type="file" id="truckPhoto" accept="image/*" capture="environment" onchange="handlePhotoUpload(event)" />
+      </label>
+
+      <img id="photoPreview" class="photo-preview" />
+
+      <div id="extractedInfo" class="extracted-info">
+        <p><strong>VIN:</strong> <span id="vinDisplay">-</span></p>
+        <p><strong>License Plate:</strong> <span id="plateDisplay">-</span></p>
+        <p><strong>Location:</strong> <span id="locationDisplay">Getting location...</span></p>
+        <p><strong>Owner Phone:</strong> <input type="tel" id="ownerPhone" placeholder="(916) 555-0123" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; margin-top: 5px;" /></p>
+      </div>
+
+      <button id="scheduleBtn" class="schedule-btn" onclick="scheduleTest()">
+        📅 Schedule Test & Send SMS
+      </button>
+    </div>
+
+    <!-- Today's Jobs -->
+    <div class="jobs-card">
+      <h3>
+        Today's Schedule
+        <span class="jobs-count" id="jobsCount">0</span>
+      </h3>
+      <div id="jobsList" class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+
+  <!-- Tesseract.js for OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCcQXEpPUIUmOGLFGlNpMLOmhNATKBb8ok",
+      authDomain: "carb-compliance-app-3537-a1e48.firebaseapp.com",
+      projectId: "carb-compliance-app-3537-a1e48",
+      storageBucket: "carb-compliance-app-3537-a1e48.firebasestorage.app",
+      messagingSenderId: "1049992447334",
+      appId: "1:1049992447334:web:1049992447334"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const functions = firebase.functions();
+
+    // Global state
+    let currentUser = null;
+    let currentPhoto = null;
+    let extractedData = {
+      vin: null,
+      plate: null,
+      location: null,
+      photoUrl: null
+    };
+
+    // Auth State Observer
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboard').classList.add('active');
+        document.getElementById('userEmail').textContent = user.email;
+        loadTodaysJobs();
+        getCurrentLocation();
+      } else {
+        currentUser = null;
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('dashboard').classList.remove('active');
+      }
+    });
+
+    // Login Function
+    async function login() {
+      const email = document.getElementById('emailInput').value;
+      const password = document.getElementById('passwordInput').value;
+      const errorDiv = document.getElementById('loginError');
+
+      errorDiv.textContent = '';
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (error) {
+        errorDiv.textContent = error.message;
+      }
+    }
+
+    // Logout Function
+    function logout() {
+      auth.signOut();
+    }
+
+    // Get Current Location
+    function getCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude.toFixed(6);
+            const lon = position.coords.longitude.toFixed(6);
+            extractedData.location = `${lat}, ${lon}`;
+            document.getElementById('locationDisplay').textContent = extractedData.location;
+          },
+          (error) => {
+            console.error('Location error:', error);
+            document.getElementById('locationDisplay').textContent = 'Location unavailable';
+          }
+        );
+      }
+    }
+
+    // Handle Photo Upload
+    async function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      currentPhoto = file;
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const preview = document.getElementById('photoPreview');
+        preview.src = e.target.result;
+        preview.classList.add('active');
+      };
+      reader.readAsDataURL(file);
+
+      // Show extracted info section
+      document.getElementById('extractedInfo').classList.add('active');
+      document.getElementById('vinDisplay').textContent = 'Extracting...';
+      document.getElementById('plateDisplay').textContent = 'Extracting...';
+
+      // Extract VIN and Plate using Tesseract.js
+      try {
+        const worker = await Tesseract.createWorker();
+        await worker.load();
+        await worker.loadLanguage('eng');
+        await worker.initialize('eng');
+
+        const { data: { text } } = await worker.recognize(file);
+        await worker.terminate();
+
+        // Extract VIN (17 characters)
+        const vinMatch = text.match(/[A-HJ-NPR-Z0-9]{17}/i);
+        extractedData.vin = vinMatch ? vinMatch[0] : 'Not found';
+        document.getElementById('vinDisplay').textContent = extractedData.vin;
+
+        // Extract License Plate (simple pattern - adjust as needed)
+        const plateMatch = text.match(/[A-Z0-9]{6,8}/i);
+        extractedData.plate = plateMatch ? plateMatch[0] : 'Not found';
+        document.getElementById('plateDisplay').textContent = extractedData.plate;
+
+        // Show schedule button if VIN found
+        if (extractedData.vin !== 'Not found') {
+          document.getElementById('scheduleBtn').classList.add('active');
+        }
+      } catch (error) {
+        console.error('OCR error:', error);
+        document.getElementById('vinDisplay').textContent = 'Error extracting';
+        document.getElementById('plateDisplay').textContent = 'Error extracting';
+      }
+
+      // Upload photo to Firebase Storage
+      try {
+        const timestamp = Date.now();
+        const filename = `truck-photos/${currentUser.uid}/${timestamp}.jpg`;
+        const storageRef = storage.ref(filename);
+
+        await storageRef.put(file);
+        extractedData.photoUrl = await storageRef.getDownloadURL();
+
+        console.log('Photo uploaded:', extractedData.photoUrl);
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Failed to upload photo. Please try again.');
+      }
+    }
+
+    // Schedule Test Function
+    async function scheduleTest() {
+      const ownerPhone = document.getElementById('ownerPhone').value;
+
+      if (!ownerPhone) {
+        alert('Please enter the owner\'s phone number');
+        return;
+      }
+
+      if (!extractedData.vin || extractedData.vin === 'Not found') {
+        alert('VIN not detected. Please retake photo or enter manually.');
+        return;
+      }
+
+      const scheduleBtn = document.getElementById('scheduleBtn');
+      scheduleBtn.disabled = true;
+      scheduleBtn.textContent = '⏳ Scheduling...';
+
+      try {
+        // Create test record in Firestore
+        const testData = {
+          testerId: currentUser.uid,
+          testerEmail: currentUser.email,
+          vin: extractedData.vin,
+          plate: extractedData.plate,
+          location: extractedData.location,
+          photoUrl: extractedData.photoUrl,
+          ownerPhone: ownerPhone,
+          status: 'scheduled',
+          scheduledDate: firebase.firestore.FieldValue.serverTimestamp(),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        const testRef = await db.collection('tests').add(testData);
+
+        // Call Cloud Function to send SMS & calendar invite
+        const scheduleTestFn = functions.httpsCallable('scheduleTest');
+        const result = await scheduleTestFn({
+          testId: testRef.id,
+          ownerPhone: ownerPhone,
+          vin: extractedData.vin,
+          testerEmail: currentUser.email
+        });
+
+        alert('✅ Test scheduled! SMS sent to customer.');
+
+        // Reset form
+        resetForm();
+
+        // Reload today's jobs
+        loadTodaysJobs();
+
+      } catch (error) {
+        console.error('Schedule error:', error);
+        alert('Failed to schedule test: ' + error.message);
+        scheduleBtn.disabled = false;
+        scheduleBtn.textContent = '📅 Schedule Test & Send SMS';
+      }
+    }
+
+    // Reset Form
+    function resetForm() {
+      document.getElementById('truckPhoto').value = '';
+      document.getElementById('photoPreview').classList.remove('active');
+      document.getElementById('extractedInfo').classList.remove('active');
+      document.getElementById('scheduleBtn').classList.remove('active');
+      document.getElementById('ownerPhone').value = '';
+
+      extractedData = {
+        vin: null,
+        plate: null,
+        location: extractedData.location, // Keep location
+        photoUrl: null
+      };
+
+      const scheduleBtn = document.getElementById('scheduleBtn');
+      scheduleBtn.disabled = false;
+      scheduleBtn.textContent = '📅 Schedule Test & Send SMS';
+    }
+
+    // Load Today's Jobs
+    async function loadTodaysJobs() {
+      const jobsList = document.getElementById('jobsList');
+      const jobsCount = document.getElementById('jobsCount');
+
+      try {
+        // Get today's date at midnight
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Query tests scheduled today
+        const snapshot = await db.collection('tests')
+          .where('testerId', '==', currentUser.uid)
+          .where('scheduledDate', '>=', firebase.firestore.Timestamp.fromDate(today))
+          .orderBy('scheduledDate', 'desc')
+          .get();
+
+        if (snapshot.empty) {
+          jobsList.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📭</div>
+              <p>No tests scheduled for today</p>
+            </div>
+          `;
+          jobsCount.textContent = '0';
+          return;
+        }
+
+        let html = '';
+        snapshot.forEach((doc) => {
+          const job = doc.data();
+          const time = job.scheduledDate?.toDate().toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit'
+          }) || 'Pending';
+
+          html += `
+            <div class="job-item">
+              <h4>🚛 ${job.vin || 'Unknown VIN'}</h4>
+              <p><strong>Plate:</strong> ${job.plate || 'N/A'}</p>
+              <p><strong>Owner:</strong> ${job.ownerPhone}</p>
+              <p><strong>Location:</strong> ${job.location || 'N/A'}</p>
+              <p><strong>Time:</strong> ${time}</p>
+              <span class="job-status ${job.status}">${job.status.toUpperCase()}</span>
+            </div>
+          `;
+        });
+
+        jobsList.innerHTML = html;
+        jobsCount.textContent = snapshot.size;
+
+      } catch (error) {
+        console.error('Load jobs error:', error);
+        jobsList.innerHTML = `<div class="empty-state"><p>Error loading jobs</p></div>`;
+      }
+    }
+
+    // Auto-refresh jobs every 30 seconds
+    setInterval(() => {
+      if (currentUser) {
+        loadTodaysJobs();
+      }
+    }, 30000);
+  </script>
+</body>
+</html>
