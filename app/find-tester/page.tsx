@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, MapPin, Mail } from 'lucide-react';
+import { ArrowLeft, MapPin, Mail, Phone } from 'lucide-react';
 import PasswordProtection from '@/app/components/PasswordProtection';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function FindTesterPage() {
   return (
@@ -13,26 +15,104 @@ export default function FindTesterPage() {
   );
 }
 
+// Region configuration with tester info
+type Region = 'norcal' | 'valley' | 'socal' | 'other';
+
+interface TesterInfo {
+  name: string;
+  phone: string;
+  email: string;
+  website?: string;
+}
+
+const TESTER_INFO: Record<Region, TesterInfo> = {
+  norcal: {
+    name: 'NorCal CARB Mobile',
+    phone: '(916) 890-4427',
+    email: 'support@norcalcarbmobile.com',
+    website: 'https://norcalcarbmobile.com/services'
+  },
+  socal: {
+    name: 'SoCal Mobile Tester',
+    phone: '(XXX) XXX-XXXX', // TODO: Add SoCal phone number
+    email: 'support@norcalcarbmobile.com',
+  },
+  valley: {
+    name: 'Valley Mobile Testers',
+    phone: '(XXX) XXX-XXXX', // TODO: Add Valley phone number
+    email: 'support@norcalcarbmobile.com',
+  },
+  other: {
+    name: 'Mobile Testing Services',
+    phone: '(916) 890-4427',
+    email: 'support@norcalcarbmobile.com',
+  }
+};
+
 function FindTesterContent() {
   const [zipCode, setZipCode] = useState('');
   const [county, setCounty] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const [detectedRegion, setDetectedRegion] = useState<Region>('other');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearch = () => {
-    if (!zipCode) {
-      alert('Please enter your ZIP code');
+  const detectRegion = (zip: string): Region => {
+    const zipPrefix = zip.substring(0, 2);
+
+    // NorCal: 94xxx (Bay Area), 95xxx (Sacramento), 96xxx (Far North)
+    if (['94', '95', '96'].includes(zipPrefix)) {
+      return 'norcal';
+    }
+
+    // Valley: 93xxx (Central Valley - Fresno, Bakersfield)
+    if (zipPrefix === '93') {
+      return 'valley';
+    }
+
+    // SoCal: 90xxx, 91xxx, 92xxx (LA, Orange County, San Diego)
+    if (['90', '91', '92'].includes(zipPrefix)) {
+      return 'socal';
+    }
+
+    return 'other';
+  };
+
+  const handleSearch = async () => {
+    if (!zipCode || zipCode.length !== 5) {
+      alert('Please enter a valid 5-digit ZIP code');
       return;
     }
 
-    // Check if NorCal area (simplified check)
-    const isNorCal = ['95', '94', '93', '96'].some(d => zipCode.startsWith(d));
+    setIsLoading(true);
 
-    if (isNorCal) {
+    try {
+      // Detect region
+      const region = detectRegion(zipCode);
+      setDetectedRegion(region);
+
+      // Save lead to Firebase
+      await addDoc(collection(db, 'leads'), {
+        source: 'organic',
+        metadata: {
+          zipCode,
+          county: county || null,
+          region,
+          searchType: 'find_tester'
+        },
+        status: 'new',
+        createdAt: serverTimestamp(),
+      });
+
+      // Show results
       setShowResults(true);
-    } else {
-      // Generate lead email for other areas
-      const mailtoLink = `mailto:support@norcalcarbmobile.com?subject=Tester Lead - ${county || 'Unknown County'}&body=ZIP: ${zipCode}%0ACounty: ${county}%0A%0AI'm interested in mobile CARB testing.`;
-      window.location.href = mailtoLink;
+    } catch (error) {
+      console.error('Error saving lead:', error);
+      // Still show results even if Firebase fails
+      const region = detectRegion(zipCode);
+      setDetectedRegion(region);
+      setShowResults(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -93,53 +173,84 @@ function FindTesterContent() {
 
           <button
             onClick={handleSearch}
-            className="w-full bg-[#00A651] hover:bg-[#008f47] text-white font-semibold py-4 px-6 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg text-lg"
+            disabled={isLoading}
+            className="w-full bg-[#00A651] hover:bg-[#008f47] text-white font-semibold py-4 px-6 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-center justify-center gap-2">
               <MapPin className="h-5 w-5" />
-              <span>Find Tester</span>
+              <span>{isLoading ? 'Searching...' : 'Find Tester'}</span>
             </div>
           </button>
         </div>
       </div>
 
-      {/* Results for NorCal */}
+      {/* Results */}
       {showResults && (
         <div className="bg-green-50 border-2 border-[#00A651] rounded-lg p-6">
           <h2 className="text-2xl font-bold text-[#1A3C5E] mb-4">
-            Great News! We Service Your Area
+            {detectedRegion === 'other'
+              ? 'We Can Help Connect You!'
+              : 'Great News! We Service Your Area'}
           </h2>
           <p className="text-gray-700 mb-4">
-            NorCal CARB Mobile provides certified testing services in your location.
+            <span className="font-semibold text-[#1A3C5E]">
+              {TESTER_INFO[detectedRegion].name}
+            </span>
+            {' '}provides certified testing services in your location.
           </p>
+
+          {/* Region Badge */}
+          <div className="mb-4">
+            <span className="inline-block bg-[#00A651] text-white px-3 py-1 rounded-full text-sm font-semibold">
+              {detectedRegion === 'norcal' && 'Northern California'}
+              {detectedRegion === 'socal' && 'Southern California'}
+              {detectedRegion === 'valley' && 'Central Valley'}
+              {detectedRegion === 'other' && 'Service Available'}
+            </span>
+          </div>
+
+          {/* Contact Information */}
           <div className="space-y-3 mb-6">
+            <div className="flex items-center gap-3 text-gray-700">
+              <Phone className="h-5 w-5 text-[#00A651]" />
+              <a
+                href={`tel:${TESTER_INFO[detectedRegion].phone.replace(/[^0-9]/g, '')}`}
+                className="text-[#00A651] hover:text-[#008f47] font-semibold text-lg"
+              >
+                {TESTER_INFO[detectedRegion].phone}
+              </a>
+            </div>
             <div className="flex items-center gap-3 text-gray-700">
               <Mail className="h-5 w-5 text-[#00A651]" />
               <a
-                href="mailto:support@norcalcarbmobile.com"
+                href={`mailto:${TESTER_INFO[detectedRegion].email}`}
                 className="text-[#00A651] hover:text-[#008f47] font-semibold"
               >
-                support@norcalcarbmobile.com
-              </a>
-            </div>
-            <div className="flex items-center gap-3 text-gray-700">
-              <span className="text-xl">📞</span>
-              <a
-                href="tel:9168904427"
-                className="text-[#00A651] hover:text-[#008f47] font-semibold"
-              >
-                (916) 890-4427
+                {TESTER_INFO[detectedRegion].email}
               </a>
             </div>
           </div>
-          <a
-            href="https://norcalcarbmobile.com/services"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-[#00A651] hover:bg-[#008f47] text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
-          >
-            View Our Services
-          </a>
+
+          {/* Service Link (only for NorCal with website) */}
+          {TESTER_INFO[detectedRegion].website && (
+            <a
+              href={TESTER_INFO[detectedRegion].website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-[#00A651] hover:bg-[#008f47] text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            >
+              View Our Services
+            </a>
+          )}
+
+          {/* Lead Generation Message */}
+          {detectedRegion === 'other' && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-gray-700">
+                We're expanding our service areas! Your information has been recorded and we'll contact you soon about testing services in your area.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
