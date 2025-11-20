@@ -421,11 +421,6 @@
       }
     }
 
-    // Logout Function
-    function logout() {
-      auth.signOut();
-    }
-
     // Get Current Location
     function getCurrentLocation() {
       if (navigator.geolocation) {
@@ -502,13 +497,17 @@
         document.getElementById('plateDisplay').textContent = 'Error - try again';
       }
 
-      // Upload photo to Firebase Storage
+      // Upload photo to Firebase Storage (compressed for cost savings)
       try {
         const timestamp = Date.now();
         const filename = `truck-photos/${currentUser.uid}/${timestamp}.jpg`;
         const storageRef = storage.ref(filename);
 
-        await storageRef.put(file);
+        // Compress photo before upload (2MB → 200KB = 90% savings)
+        const compressedFile = await compressPhoto(file, 1200, 0.7);
+        console.log(`Photo compressed: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+
+        await storageRef.put(compressedFile);
         extractedData.photoUrl = await storageRef.getDownloadURL();
 
         console.log('Photo uploaded:', extractedData.photoUrl);
@@ -598,69 +597,82 @@
       scheduleBtn.textContent = '📅 Schedule Test & Send SMS';
     }
 
-    // Load Today's Jobs
-    async function loadTodaysJobs() {
+    // Load Today's Jobs with Real-Time Listener (Cost Optimized)
+    let jobsUnsubscribe = null; // Store unsubscribe function
+
+    function loadTodaysJobs() {
       const jobsList = document.getElementById('jobsList');
       const jobsCount = document.getElementById('jobsCount');
+
+      // Unsubscribe from previous listener if exists
+      if (jobsUnsubscribe) {
+        jobsUnsubscribe();
+      }
 
       try {
         // Get today's date at midnight
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Query tests scheduled today
-        const snapshot = await db.collection('tests')
+        // Set up real-time listener (1 initial read + real-time updates)
+        // No more polling = 95% fewer reads
+        jobsUnsubscribe = db.collection('tests')
           .where('testerId', '==', currentUser.uid)
           .where('scheduledDate', '>=', firebase.firestore.Timestamp.fromDate(today))
           .orderBy('scheduledDate', 'desc')
-          .get();
+          .onSnapshot((snapshot) => {
+            if (snapshot.empty) {
+              jobsList.innerHTML = `
+                <div class="empty-state">
+                  <div class="icon">📭</div>
+                  <p>No tests scheduled for today</p>
+                </div>
+              `;
+              jobsCount.textContent = '0';
+              return;
+            }
 
-        if (snapshot.empty) {
-          jobsList.innerHTML = `
-            <div class="empty-state">
-              <div class="icon">📭</div>
-              <p>No tests scheduled for today</p>
-            </div>
-          `;
-          jobsCount.textContent = '0';
-          return;
-        }
+            let html = '';
+            snapshot.forEach((doc) => {
+              const job = doc.data();
+              const time = job.scheduledDate?.toDate().toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
+              }) || 'Pending';
 
-        let html = '';
-        snapshot.forEach((doc) => {
-          const job = doc.data();
-          const time = job.scheduledDate?.toDate().toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit'
-          }) || 'Pending';
+              html += `
+                <div class="job-item">
+                  <h4>🚛 ${job.vin || 'Unknown VIN'}</h4>
+                  <p><strong>Plate:</strong> ${job.plate || 'N/A'}</p>
+                  <p><strong>Owner:</strong> ${job.ownerPhone}</p>
+                  <p><strong>Location:</strong> ${job.location || 'N/A'}</p>
+                  <p><strong>Time:</strong> ${time}</p>
+                  <span class="job-status ${job.status}">${job.status.toUpperCase()}</span>
+                </div>
+              `;
+            });
 
-          html += `
-            <div class="job-item">
-              <h4>🚛 ${job.vin || 'Unknown VIN'}</h4>
-              <p><strong>Plate:</strong> ${job.plate || 'N/A'}</p>
-              <p><strong>Owner:</strong> ${job.ownerPhone}</p>
-              <p><strong>Location:</strong> ${job.location || 'N/A'}</p>
-              <p><strong>Time:</strong> ${time}</p>
-              <span class="job-status ${job.status}">${job.status.toUpperCase()}</span>
-            </div>
-          `;
-        });
-
-        jobsList.innerHTML = html;
-        jobsCount.textContent = snapshot.size;
+            jobsList.innerHTML = html;
+            jobsCount.textContent = snapshot.size;
+          }, (error) => {
+            console.error('Load jobs error:', error);
+            jobsList.innerHTML = `<div class="empty-state"><p>Error loading jobs</p></div>`;
+          });
 
       } catch (error) {
-        console.error('Load jobs error:', error);
+        console.error('Load jobs setup error:', error);
         jobsList.innerHTML = `<div class="empty-state"><p>Error loading jobs</p></div>`;
       }
     }
 
-    // Auto-refresh jobs every 30 seconds
-    setInterval(() => {
-      if (currentUser) {
-        loadTodaysJobs();
+    // Clean up listener on logout
+    function logout() {
+      if (jobsUnsubscribe) {
+        jobsUnsubscribe();
+        jobsUnsubscribe = null;
       }
-    }, 30000);
+      auth.signOut();
+    }
   </script>
 </body>
 </html>

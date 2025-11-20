@@ -375,6 +375,74 @@ export const processLogEntry = functions.firestore
   });
 
 /**
+ * Archive Old Tests - Move completed tests older than 30 days to archive
+ * Keeps main collection small for fast, cheap queries
+ * Runs daily at 2 AM
+ */
+export const archiveOldTests = functions.pubsub
+  .schedule("0 2 * * *") // 2 AM daily
+  .timeZone("America/Los_Angeles")
+  .onRun(async (context) => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    console.log(`Archiving tests older than ${thirtyDaysAgo.toISOString()}`);
+
+    try {
+      // Query old completed tests (batch to avoid timeout)
+      const oldTests = await admin.firestore()
+        .collection("tests")
+        .where("status", "==", "completed")
+        .where("createdAt", "<",
+          admin.firestore.Timestamp.fromDate(thirtyDaysAgo))
+        .limit(100)
+        .get();
+
+      if (oldTests.empty) {
+        console.log("No tests to archive");
+        return;
+      }
+
+      // Move to archive collection in batches
+      const batch = admin.firestore().batch();
+      let archived = 0;
+
+      oldTests.forEach((doc) => {
+        const archiveRef = admin.firestore()
+          .collection("tests_archive")
+          .doc(doc.id);
+
+        // Copy to archive with metadata
+        batch.set(archiveRef, {
+          ...doc.data(),
+          archivedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Delete from main collection
+        batch.delete(doc.ref);
+        archived++;
+      });
+
+      await batch.commit();
+      console.log(`Archived ${archived} old tests`);
+
+      // Update analytics
+      await admin.firestore()
+        .collection("analytics")
+        .doc("archive")
+        .set({
+          lastRun: admin.firestore.FieldValue.serverTimestamp(),
+          totalArchived: admin.firestore.FieldValue.increment(archived),
+        }, {merge: true});
+
+      return {success: true, archived};
+    } catch (error) {
+      console.error("Archive error:", error);
+      return {success: false, error: error instanceof Error ? error.message : "Unknown error"};
+    }
+  });
+
+/**
  * Schedule Test - Send SMS to customer and create calendar invite
  * Called from tester.html when tester schedules a new test
  */
