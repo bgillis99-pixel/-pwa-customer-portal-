@@ -1,13 +1,9 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
-import { getAnalytics, isSupported } from 'firebase/analytics';
+import { getAnalytics } from 'firebase/analytics';
 
-/**
- * Firebase configuration
- * These values should be set in your environment variables
- */
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -18,27 +14,16 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-/**
- * Initialize Firebase app
- * Use getApps to prevent multiple initialization
- */
+// Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
 
-/**
- * Firebase services
- */
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Analytics is only available in browser
+let analytics = null;
+if (typeof window !== 'undefined') {
+  analytics = getAnalytics(app);
+}
 
-/**
- * Initialize Analytics (only in browser and if supported)
- */
-export const analytics = typeof window !== 'undefined'
-  ? isSupported().then((yes) => (yes ? getAnalytics(app) : null))
-  : Promise.resolve(null);
-
-/**
- * Export the app instance for advanced usage
- */
-export default app;
+export { app, db, auth, storage, analytics };

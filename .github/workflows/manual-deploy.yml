@@ -1,0 +1,126 @@
+name: Manual Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+      deploy_hosting:
+        description: 'Deploy Hosting (Next.js app)'
+        required: true
+        type: boolean
+        default: true
+      deploy_functions:
+        description: 'Deploy Cloud Functions'
+        required: true
+        type: boolean
+        default: true
+      deploy_firestore:
+        description: 'Deploy Firestore rules & indexes'
+        required: true
+        type: boolean
+        default: false
+      deploy_storage:
+        description: 'Deploy Storage rules'
+        required: true
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install Functions dependencies
+        if: github.event.inputs.deploy_functions == 'true'
+        run: |
+          cd functions
+          npm ci
+          cd ..
+
+      - name: Build Cloud Functions
+        if: github.event.inputs.deploy_functions == 'true'
+        run: |
+          cd functions
+          npm run build
+          cd ..
+
+      - name: Build Next.js application
+        if: github.event.inputs.deploy_hosting == 'true'
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+        run: npm run build
+
+      - name: Setup Firebase credentials
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $HOME/gcloud-service-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-service-key.json"
+
+      - name: Deploy Hosting
+        if: github.event.inputs.deploy_hosting == 'true'
+        run: |
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-service-key.json"
+          npx firebase-tools deploy --only hosting --project norcalcarb-mobile --non-interactive
+
+      - name: Deploy Functions
+        if: github.event.inputs.deploy_functions == 'true'
+        run: |
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-service-key.json"
+          npx firebase-tools deploy --only functions --project norcalcarb-mobile --non-interactive
+
+      - name: Deploy Firestore
+        if: github.event.inputs.deploy_firestore == 'true'
+        run: |
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-service-key.json"
+          npx firebase-tools deploy --only firestore --project norcalcarb-mobile --non-interactive
+
+      - name: Deploy Storage
+        if: github.event.inputs.deploy_storage == 'true'
+        run: |
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-service-key.json"
+          npx firebase-tools deploy --only storage --project norcalcarb-mobile --non-interactive
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          echo "🚀 Manual deployment to ${{ github.event.inputs.environment }} successful!"
+          echo ""
+          echo "Deployed components:"
+          echo "  - Hosting: ${{ github.event.inputs.deploy_hosting }}"
+          echo "  - Functions: ${{ github.event.inputs.deploy_functions }}"
+          echo "  - Firestore: ${{ github.event.inputs.deploy_firestore }}"
+          echo "  - Storage: ${{ github.event.inputs.deploy_storage }}"
+          echo ""
+          echo "📱 Hosting URL: https://norcalcarb-mobile.web.app"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f $HOME/gcloud-service-key.json

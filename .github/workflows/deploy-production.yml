@@ -1,0 +1,89 @@
+name: Deploy to Firebase (Production)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Allow manual triggers
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install Functions dependencies
+        run: |
+          cd functions
+          npm ci
+          cd ..
+
+      - name: Build Cloud Functions
+        run: |
+          cd functions
+          npm run build
+          cd ..
+
+      - name: Build Next.js application
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+        run: npm run build
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: norcalcarb-mobile
+
+      - name: Deploy Functions to Firebase
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $HOME/gcloud-service-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-service-key.json"
+          npx firebase-tools deploy --only functions --project norcalcarb-mobile --non-interactive
+
+      - name: Deploy Firestore Rules and Indexes
+        run: |
+          npx firebase-tools deploy --only firestore --project norcalcarb-mobile --non-interactive
+
+      - name: Deploy Storage Rules
+        run: |
+          npx firebase-tools deploy --only storage --project norcalcarb-mobile --non-interactive
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          echo "🚀 Deployment successful!"
+          echo "📱 Hosting: https://norcalcarb-mobile.web.app"
+          echo "⚡ Functions: Deployed to us-central1"
+          echo "🔥 Firestore: Rules and indexes updated"
+          echo "📦 Storage: Rules updated"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed! Check the logs above for details."
+          exit 1

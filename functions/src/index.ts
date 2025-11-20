@@ -157,7 +157,7 @@ async function processSMSLead(data: any, webhookId: string) {
  */
 async function processCalendarEvent(data: any, webhookId: string) {
   try {
-    const {eventId, summary, start, attendees} = data;
+    const {eventId, summary, start} = data;
 
     // Create or update job from calendar event
     const jobRef = admin.firestore().collection("jobs").doc(eventId);

@@ -1,6 +1,12 @@
 # NorCal CARB Mobile - Customer Portal PWA
 
+[![Deploy to Firebase (Production)](https://github.com/bgillis99-pixel/-pwa-customer-portal-/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/bgillis99-pixel/-pwa-customer-portal-/actions/workflows/deploy-production.yml)
+[![CI Checks](https://github.com/bgillis99-pixel/-pwa-customer-portal-/actions/workflows/ci-checks.yml/badge.svg)](https://github.com/bgillis99-pixel/-pwa-customer-portal-/actions/workflows/ci-checks.yml)
+[![Deploy Preview](https://github.com/bgillis99-pixel/-pwa-customer-portal-/actions/workflows/deploy-preview.yml/badge.svg)](https://github.com/bgillis99-pixel/-pwa-customer-portal-/actions/workflows/deploy-preview.yml)
+
 A Progressive Web App (PWA) for NorCal CARB Mobile that provides real-time job tracking, customer self-service, and seamless integration with Firebase and Cloudflare Workers.
+
+**🔗 Live:** https://norcalcarb-mobile.web.app
 
 ## 🚀 Features
 
@@ -118,27 +124,50 @@ firebase functions:config:set twilio.auth_token="YOUR_TOKEN"
 
 ## 🚢 Deployment
 
-### Deploy Everything
+### Automated CI/CD
+
+This project includes **full GitHub Actions automation**:
+
+✅ **Automated Production Deployment** - Pushes to `main` trigger automatic deployment
+✅ **PR Preview Deployments** - Every PR gets a temporary preview URL
+✅ **CI Checks** - Automated linting, type checking, and build validation
+✅ **Manual Deployment Controls** - Deploy specific components on demand
+
+See the comprehensive [**Deployment Guide (DEPLOYMENT.md)**](./DEPLOYMENT.md) for complete instructions.
+
+### Quick Deployment Commands
 
 ```bash
-firebase deploy
+# Deploy everything
+npm run firebase:deploy
+
+# Deploy specific resources
+npm run firebase:deploy:functions   # Cloud Functions only
+npm run firebase:deploy:firestore   # Firestore rules + indexes
+npm run firebase:deploy:hosting     # Next.js app
+npm run firebase:deploy:storage     # Storage rules
+
+# View logs
+npm run firebase:logs
 ```
 
-### Deploy Specific Resources
+### GitHub Actions Workflows
 
-```bash
-# Deploy only Cloud Functions
-firebase deploy --only functions
+- **Production Deployment** - `.github/workflows/deploy-production.yml`
+  - Triggers: Push to main/master, manual
+  - Deploys: Hosting, Functions, Firestore, Storage
 
-# Deploy only Firestore (rules + indexes)
-firebase deploy --only firestore
+- **PR Preview** - `.github/workflows/deploy-preview.yml`
+  - Triggers: Pull requests to main/master
+  - Creates: Temporary preview environment (expires in 7 days)
 
-# Deploy only Hosting
-firebase deploy --only hosting
+- **CI Checks** - `.github/workflows/ci-checks.yml`
+  - Triggers: All pushes and PRs
+  - Validates: Linting, type checking, builds
 
-# Deploy only Storage rules
-firebase deploy --only storage
-```
+- **Manual Deployment** - `.github/workflows/manual-deploy.yml`
+  - Triggers: Manual via GitHub UI
+  - Options: Choose environment and components to deploy
 
 ## 📊 Firebase Collections
 
