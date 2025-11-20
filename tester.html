@@ -359,6 +359,8 @@
 
   <!-- Tesseract.js for OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Shared VIN Extraction -->
+  <script src="vin-extractor.js"></script>
 
   <script>
     // Firebase Configuration
@@ -463,34 +465,41 @@
       document.getElementById('vinDisplay').textContent = 'Extracting...';
       document.getElementById('plateDisplay').textContent = 'Extracting...';
 
-      // Extract VIN and Plate using Tesseract.js
+      // Extract VIN and Plate using shared module (same as customer side)
       try {
-        const worker = await Tesseract.createWorker();
-        await worker.load();
-        await worker.loadLanguage('eng');
-        await worker.initialize('eng');
+        const result = await extractVINFromPhoto(file, (status) => {
+          document.getElementById('vinDisplay').textContent = status;
+        });
 
-        const { data: { text } } = await worker.recognize(file);
-        await worker.terminate();
+        // Update VIN
+        if (result.vin && isValidVIN(result.vin)) {
+          extractedData.vin = result.vin.toUpperCase();
+          document.getElementById('vinDisplay').textContent = formatVINDisplay(result.vin);
+        } else if (result.vin) {
+          extractedData.vin = result.vin.toUpperCase();
+          document.getElementById('vinDisplay').textContent = result.vin + ' ⚠️';
+        } else {
+          extractedData.vin = null;
+          document.getElementById('vinDisplay').textContent = 'Not found';
+        }
 
-        // Extract VIN (17 characters)
-        const vinMatch = text.match(/[A-HJ-NPR-Z0-9]{17}/i);
-        extractedData.vin = vinMatch ? vinMatch[0] : 'Not found';
-        document.getElementById('vinDisplay').textContent = extractedData.vin;
-
-        // Extract License Plate (simple pattern - adjust as needed)
-        const plateMatch = text.match(/[A-Z0-9]{6,8}/i);
-        extractedData.plate = plateMatch ? plateMatch[0] : 'Not found';
-        document.getElementById('plateDisplay').textContent = extractedData.plate;
+        // Update Plate
+        if (result.plate) {
+          extractedData.plate = result.plate.toUpperCase();
+          document.getElementById('plateDisplay').textContent = result.plate;
+        } else {
+          extractedData.plate = null;
+          document.getElementById('plateDisplay').textContent = 'Not found';
+        }
 
         // Show schedule button if VIN found
-        if (extractedData.vin !== 'Not found') {
+        if (extractedData.vin) {
           document.getElementById('scheduleBtn').classList.add('active');
         }
       } catch (error) {
         console.error('OCR error:', error);
-        document.getElementById('vinDisplay').textContent = 'Error extracting';
-        document.getElementById('plateDisplay').textContent = 'Error extracting';
+        document.getElementById('vinDisplay').textContent = 'Error - try again';
+        document.getElementById('plateDisplay').textContent = 'Error - try again';
       }
 
       // Upload photo to Firebase Storage

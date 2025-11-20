@@ -48,6 +48,11 @@
     </p>
   </div>
 
+  <!-- Tesseract.js OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Shared VIN Extraction -->
+  <script src="vin-extractor.js"></script>
+
   <script>
     // Find a Tester – Lead Gen
     document.getElementById('findTester').addEventListener('click', (e) => {
@@ -64,27 +69,34 @@
       }
     });
 
-    // VIN Photo → Extract (AI via Tesseract.js)
+    // VIN Photo → Extract (shared extraction logic)
     document.getElementById('vinPhoto').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      document.getElementById('vinResult').textContent = "Extracting VIN...";
-      const { createWorker } = Tesseract;
-      const worker = await createWorker();
-      await worker.load();
-      await worker.loadLanguage('eng');
-      await worker.initialize('eng');
-      const { data: { text } } = await worker.recognize(file);
-      await worker.terminate();
-      const vin = text.match(/[A-HJ-NPR-Z0-9]{17}/i)?.[0] || "Not found";
-      document.getElementById('vinResult').textContent = `VIN: ${vin}`;
-      if (vin.length === 17) {
-        setTimeout(() => {
-          window.open(`https://cleantruckcheck.arb.ca.gov/Fleet/Vehicle/VehicleComplianceStatusLookup?vin=${vin}`, '_blank');
-        }, 1000);
+
+      const resultDiv = document.getElementById('vinResult');
+
+      try {
+        const result = await extractVINFromPhoto(file, (status) => {
+          resultDiv.textContent = status;
+        });
+
+        if (result.vin) {
+          resultDiv.textContent = `VIN: ${formatVINDisplay(result.vin)}`;
+          if (isValidVIN(result.vin)) {
+            setTimeout(() => {
+              window.open(`https://cleantruckcheck.arb.ca.gov/Fleet/Vehicle/VehicleComplianceStatusLookup?vin=${result.vin}`, '_blank');
+            }, 1000);
+          } else {
+            resultDiv.textContent += ' ⚠️ Please verify';
+          }
+        } else {
+          resultDiv.textContent = 'VIN not found - retake photo';
+        }
+      } catch (error) {
+        resultDiv.textContent = 'Error - please try again';
       }
     });
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </body>
 </html>
