@@ -37,17 +37,24 @@ public/
 - icon-512.png: 512x512px, PNG
 - These are required for Progressive Web App installation
 
-### 3. Creating PWA Icons from Your Logos
+### 3. Creating PWA Icons
 
-You can create PWA icons from your NorCal CARB logo:
+**⚡ SUPER QUICK METHOD (Recommended for now):**
 
-**Option A: Online Tool (Easiest)**
+1. Open `/public/icons/generate-icons.html` in your browser
+2. Click "Download 192x192" and "Download 512x512"
+3. Save both files in `/public/icons/` directory
+4. Done! (Simple design: white background, blue "CARB" text, green wave)
+
+This gives you a clean, professional icon instantly. Easy to change later!
+
+**Option B: Use Your Full Logo (Optional)**
 1. Visit: https://realfavicongenerator.net/
 2. Upload your norcalcarb-logo.png
 3. Generate and download icons
 4. Place in `/public/icons/` directory
 
-**Option B: Manual (Using design software)**
+**Option C: Manual (Using design software)**
 1. Open your logo in Photoshop/GIMP/Figma
 2. Create square canvases: 192x192 and 512x512
 3. Center your logo (may need to adjust size)
