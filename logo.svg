@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300">
+  <!-- MOBILE -->
+  <text x="400" y="90" font-family="Arial, sans-serif" font-size="72" font-weight="700" fill="#1A3C5E" text-anchor="middle" letter-spacing="4">MOBILE</text>
+
+  <!-- CARB -->
+  <text x="400" y="180" font-family="Arial, sans-serif" font-size="100" font-weight="900" fill="#00A651" text-anchor="middle" letter-spacing="6">CARB</text>
+
+  <!-- Underline -->
+  <line x1="150" y1="195" x2="400" y2="195" stroke="#00A651" stroke-width="4"/>
+
+  <!-- TESTING CA -->
+  <text x="550" y="240" font-family="Arial, sans-serif" font-size="48" font-weight="700" fill="#1A3C5E" text-anchor="middle" letter-spacing="8">TESTING CA</text>
+</svg>
