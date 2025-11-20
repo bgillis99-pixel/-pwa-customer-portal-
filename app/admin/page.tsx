@@ -138,7 +138,7 @@ function AdminContent() {
             <div className="space-y-4">
               <input
                 type="text"
-                placeholder="Type or speak… (e.g. "420 mi Sacramento → Long Beach, 75 gal")"
+                placeholder="Type or speak... (e.g. '420 mi Sacramento to Long Beach, 75 gal')"
                 value={logText}
                 onChange={(e) => setLogText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && saveLog()}
