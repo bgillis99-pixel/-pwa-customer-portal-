@@ -20,11 +20,19 @@
     }
   ],
   "hosting": {
-    "public": "build/web",
+    "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/functions/**",
+      "**/src/**",
+      "**/app/**",
+      "**/components/**",
+      "**/lib/**",
+      "**/types/**",
+      "**/github/**"
     ],
     "rewrites": [
       {
