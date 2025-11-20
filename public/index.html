@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CARB Portal – NorCal CARB Mobile</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; color: #1A3C5E; }
+    .logo { text-align: center; margin: 20px 0; }
+    .logo img { height: 60px; }
+    h1 { color: #00A651; text-align: center; font-size: 1.5rem; }
+    .btn { display: block; margin: 15px auto; padding: 14px; background: #00A651; color: white; text-align: center; border-radius: 8px; font-weight: bold; text-decoration: none; max-width: 300px; }
+    .btn.find { background: #1A3C5E; }
+    .support { text-align: center; font-size: 0.9rem; margin-top: 30px; color: #555; }
+    .vin-upload { margin: 20px auto; max-width: 300px; text-align: center; }
+    .vin-upload input { display: none; }
+    .vin-upload label { background: #f0f0f0; padding: 12px; border-radius: 8px; display: block; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <h1>NorCal CARB Mobile</h1>
+    <p>Compliance Made Simple</p>
+  </div>
+
+  <a href="#" class="btn" id="findTester">Find a Tester (Get Quote)</a>
+  <a href="https://cleantruckcheck.arb.ca.gov/Fleet/Vehicle/VehicleComplianceStatusLookup" class="btn" target="_blank">
+    Check Vehicle Status
+  </a>
+  <a href="https://cleantruckcheck.arb.ca.gov/OnlineForm/ViewProfileRequest/Create?viewProfileID=2083" class="btn" target="_blank">
+    View My Profile
+  </a>
+
+  <div class="vin-upload">
+    <label for="vinPhoto">📸 Upload VIN Photo (Auto-Extract)</label>
+    <input type="file" id="vinPhoto" accept="image/*" capture="camera" />
+    <p id="vinResult" style="margin-top:10px; font-weight:bold; color:#00A651;"></p>
+  </div>
+
+  <div class="support">
+    <p>Need help? <br>
+    📧 <a href="mailto:support@norcalcarbmobile.com">support@norcalcarbmobile.com</a><br>
+    📞 <a href="tel:9168904427">(916) 890-4427</a></p>
+  </div>
+
+  <script>
+    // Find a Tester – Lead Gen
+    document.getElementById('findTester').addEventListener('click', (e) => {
+      e.preventDefault();
+      const zip = prompt("Enter your ZIP code:");
+      if (zip) {
+        const isNorCal = ['95', '94', '93', '96', '95'].some(d => zip.startsWith(d)); // Caltrans Districts 3-10
+        if (isNorCal) {
+          window.location.href = "https://norcalcarbmobile.com/services";
+        } else {
+          const county = prompt("County name? (e.g., Los Angeles)");
+          window.location.href = `mailto:support@norcalcarbmobile.com?subject=Tester%20Lead%20-%20${county}&body=ZIP:%20${zip}%0ACounty:%20${county}%0AInterested%20in%20mobile%20CARB%20testing.`;
+        }
+      }
+    });
+
+    // VIN Photo → Extract (AI via Tesseract.js)
+    document.getElementById('vinPhoto').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('vinResult').textContent = "Extracting VIN...";
+      const { createWorker } = Tesseract;
+      const worker = await createWorker();
+      await worker.load();
+      await worker.loadLanguage('eng');
+      await worker.initialize('eng');
+      const { data: { text } } = await worker.recognize(file);
+      await worker.terminate();
+      const vin = text.match(/[A-HJ-NPR-Z0-9]{17}/i)?.[0] || "Not found";
+      document.getElementById('vinResult').textContent = `VIN: ${vin}`;
+      if (vin.length === 17) {
+        setTimeout(() => {
+          window.open(`https://cleantruckcheck.arb.ca.gov/Fleet/Vehicle/VehicleComplianceStatusLookup?vin=${vin}`, '_blank');
+        }, 1000);
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</body>
+</html>
