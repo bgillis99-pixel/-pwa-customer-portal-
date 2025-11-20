@@ -68,12 +68,20 @@ export default function Home() {
         </h1>
 
         {/* Buttons */}
-        <div className="flex gap-4 justify-center mb-8">
+        <div className="flex gap-4 justify-center mb-8 flex-wrap">
           <Button onClick={() => setLogOpen(true)} size="lg">
             Log
           </Button>
           <Button onClick={() => setAskOpen(true)} size="lg" variant="outline">
             Ask
+          </Button>
+          <Button
+            onClick={() => (window.location.href = '/vin-diesel')}
+            size="lg"
+            variant="default"
+            className="bg-green-600 hover:bg-green-700"
+          >
+            🚛 VIN DIESEL
           </Button>
         </div>
 
