@@ -48,7 +48,7 @@ export default function VinDieselPage() {
           <a href="#find-tester" className="block text-red-500 hover:text-red-700">
             Find a Tester
           </a>
-          <a href="#faq" className="block text-red-500 hover:text-red-700">
+          <a href="/faq" className="block text-red-500 hover:text-red-700">
             FAQ/Guidelines
           </a>
           <a href="#contact" className="block text-red-500 hover:text-red-700">

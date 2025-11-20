@@ -83,6 +83,14 @@ export default function Home() {
           >
             🚛 VIN DIESEL
           </Button>
+          <Button
+            onClick={() => (window.location.href = '/faq')}
+            size="lg"
+            variant="outline"
+            className="border-blue-500 text-blue-600 hover:bg-blue-50"
+          >
+            FAQ & Help
+          </Button>
         </div>
 
         {/* Real‑time log list */}
